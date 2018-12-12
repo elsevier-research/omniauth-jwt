@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'omniauth/jwt/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "discourse-omniauth-jwt"
+  spec.name          = "omniauth-jwt"
   spec.version       = Omniauth::JWT::VERSION
   spec.authors       = ["Michael Bleigh", "Robin Ward"]
   spec.email         = ["mbleigh@mbleigh.com", "robin.ward@gmail.com"]
