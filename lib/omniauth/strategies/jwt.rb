@@ -1,57 +1,72 @@
-require 'omniauth'
 require 'jwt'
+require 'omniauth'
+require 'byebug'
 
 module OmniAuth
   module Strategies
     class JWT
       class ClaimInvalid < StandardError; end
-      
+
       include OmniAuth::Strategy
-      
-      args [:secret]
-      
-      option :secret, nil
-      option :algorithm, 'HS256'
-      option :uid_claim, 'email'
-      option :required_claims, %w(name email)
-      option :info_map, {"name" => "name", "email" => "email"}
-      option :auth_url, nil
-      option :valid_within, nil
-      
+
+      option :callback_path, nil
+
       def request_phase
-        redirect options.auth_url
+        redirect [callback_path, "?jwt=", request.params['token']].join
       end
-      
-      def decoded
-        @decoded ||= ::JWT.decode(request.params['jwt'], options.secret, options.algorithm)[0]
-        (options.required_claims || []).each do |field|
-          raise ClaimInvalid.new("Missing required '#{field}' claim.") if !@decoded.key?(field.to_s)
+
+      def deep_symbolize(hash)
+        hash.inject({}) do |h, (k,v)|
+          h[k.to_sym] = v.is_a?(Hash) ? deep_symbolize(v) : v
+          h
         end
-        raise ClaimInvalid.new("Missing required 'iat' claim.") if options.valid_within && !@decoded["iat"]
-        raise ClaimInvalid.new("'iat' timestamp claim is too skewed from present.") if options.valid_within && (Time.now.to_i - @decoded["iat"]).abs > options.valid_within
-        @decoded
       end
-      
+
+      def raw_info
+        @raw_info ||= deep_symbolize(::JWT.decode(request.params['jwt'], nil, false).first)
+      end
+
       def callback_phase
         super
       rescue ClaimInvalid => e
         fail! :claim_invalid, e
       end
-      
-      uid{ decoded[options.uid_claim] }
-      
-      extra do
-        {:raw_info => decoded}
-      end
-      
+
+      uid { raw_info[:sub]  }
+
       info do
-        options.info_map.inject({}) do |h,(k,v)|
-          h[k.to_s] = decoded[v.to_s]
-          h
-        end
+        raw_info
+        {
+          name:       raw_info[:name],
+          email:      raw_info[:email],
+          first_name: raw_info[:given_name],
+          last_name:  raw_info[:family_name]
+        }
+      end
+
+      extra do
+        {
+          inst_assoc_method:    raw_info[:inst_assoc_method],
+          inst_acct_id:         raw_info[:inst_acct_id],
+          inst_acct_name:       raw_info[:inst_acct_name],
+          inst_assoc:           raw_info[:inst_assoc],
+          path_choice:          raw_info[:path_choice],
+          email_verified:       raw_info[:email_verified],
+          updated_at:           raw_info[:updated_at],
+          inst_acct_image:      raw_info[:inst_acct_image],
+          indv_identity_method: raw_info[:indv_identity_method],
+          indv_identity:        raw_info[:indv_identity],
+          auth_token:           raw_info[:auth_token],
+          aud:                  raw_info[:aud],
+          jti:                  raw_info[:jti],
+          iss:                  raw_info[:iss],
+          iat:                  raw_info[:iat],
+          exp:                  raw_info[:exp],
+          policy_success:       raw_info[:policy_success]
+        }
       end
     end
-    
+
     class Jwt < JWT; end
   end
 end

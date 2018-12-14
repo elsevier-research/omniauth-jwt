@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 describe OmniAuth::Strategies::JWT do
-  let(:response_json){ MultiJson.load(last_response.body) }
+  let(:response_json){ JSON.load(last_response.body) }
   let(:args){ ['imasecret', {auth_url: 'http://example.com/login'}] }
-  
+
   let(:app){
     the_args = args
     Rack::Builder.new do |b|
@@ -12,49 +12,49 @@ describe OmniAuth::Strategies::JWT do
       b.run lambda{|env| [200, {}, [(env['omniauth.auth'] || {}).to_json]]}
     end
   }
-  
+
   context 'request phase' do
     it 'should redirect to the configured login url' do
       get '/auth/jwt'
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('http://example.com/login')
+      expect(last_response.headers['Location']).to eq('/auth/jwt/callback?jwt=')
     end
   end
-  
+
   context 'callback phase' do
     it 'should decode the response' do
-      encoded = JWT.encode({name: 'Bob', email: 'steve@example.com'}, 'imasecret')
+      encoded = JWT.encode({name: 'Bob', email: 'steve@example.com'})
       get '/auth/jwt/callback?jwt=' + encoded
       expect(response_json["info"]["email"]).to eq("steve@example.com")
     end
-    
+
     it 'should not work without required fields' do
       encoded = JWT.encode({name: 'Steve'}, 'imasecret')
       get '/auth/jwt/callback?jwt=' + encoded
       expect(last_response.status).to eq(302)
     end
-    
+
     it 'should assign the uid' do
-      encoded = JWT.encode({name: 'Steve', email: 'dude@awesome.com'}, 'imasecret')
+      encoded = JWT.encode({name: 'Steve', email: 'dude@awesome.com'})
       get '/auth/jwt/callback?jwt=' + encoded
       expect(response_json["uid"]).to eq('dude@awesome.com')
     end
-    
+
     context 'with a :valid_within option set' do
       let(:args){ ['imasecret', {auth_url: 'http://example.com/login', valid_within: 300}] }
-      
+
       it 'should work if the iat key is within the time window' do
         encoded = JWT.encode({name: 'Ted', email: 'ted@example.com', iat: Time.now.to_i}, 'imasecret')
         get '/auth/jwt/callback?jwt=' + encoded
         expect(last_response.status).to eq(200)
       end
-      
+
       it 'should not work if the iat key is outside the time window' do
         encoded = JWT.encode({name: 'Ted', email: 'ted@example.com', iat: Time.now.to_i + 500}, 'imasecret')
         get '/auth/jwt/callback?jwt=' + encoded
         expect(last_response.status).to eq(302)
       end
-      
+
       it 'should not work if the iat key is missing' do
         encoded = JWT.encode({name: 'Ted', email: 'ted@example.com'}, 'imasecret')
         get '/auth/jwt/callback?jwt=' + encoded

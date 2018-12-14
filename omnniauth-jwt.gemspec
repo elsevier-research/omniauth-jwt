@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["mbleigh@mbleigh.com", "robin.ward@gmail.com"]
   spec.description   = %q{An OmniAuth strategy to accept JWT-based single sign-on.}
   spec.summary       = %q{An OmniAuth strategy to accept JWT-based single sign-on.}
-  spec.homepage      = "http://github.com/discourse/discourse-omniauth-jwt"
+  spec.homepage      = "http://github.com/yortz/omniauth-jwt"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
@@ -24,7 +24,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard"
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency "rack-test"
-  
+  spec.add_development_dependency "byebug"
+
   spec.add_dependency "jwt"
   spec.add_dependency "omniauth", "~> 1.1"
 end
