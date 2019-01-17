@@ -47,9 +47,9 @@ describe OmniAuth::Strategies::JWT do
   end
 
   context 'callback phase' do
-    it 'should decode the response' do
-      encoded = JWT.encode(token, false, "none")
-      get '/auth/jwt/callback?jwt=' + encoded
+    it 'should decode the encoded token passed as param' do
+      encoded_token = JWT.encode(token, false, "none")
+      get "/auth/jwt/callback?jwt=#{encoded_token}"
       expect(response_json["uid"]).to eq("123456")
       expect(response_json["info"]["name"]).to eq("Ferris")
       expect(response_json["info"]["email"]).to eq("f.bueller@email.com")
@@ -72,34 +72,6 @@ describe OmniAuth::Strategies::JWT do
       expect(response_json["extra"]["iat"]).to eq(1540993786)
       expect(response_json["extra"]["exp"]).to eq(1540994086)
       expect(response_json["extra"]["policy_success"]).to eq([ "urn:com:elsevier:idp:policy:product:indv_identity", "urn:com:elsevier:idp:policy:product:inst_assoc" ])
-    end
-
-    it 'should assign the uid' do
-      encoded = JWT.encode({name: 'Steve', email: 'dude@awesome.com'}, false, "none")
-      get '/auth/jwt/callback?jwt=' + encoded
-      expect(response_json["uid"]).to eq('dude@awesome.com')
-    end
-
-    context 'with a :valid_within option set' do
-      let(:args){ ['imasecret', {auth_url: 'http://example.com/login', valid_within: 300}] }
-
-      it 'should work if the iat key is within the time window' do
-        encoded = JWT.encode({name: 'Ted', email: 'ted@example.com', iat: Time.now.to_i}, 'imasecret')
-        get '/auth/jwt/callback?jwt=' + encoded
-        expect(last_response.status).to eq(200)
-      end
-
-      it 'should not work if the iat key is outside the time window' do
-        encoded = JWT.encode({name: 'Ted', email: 'ted@example.com', iat: Time.now.to_i + 500}, 'imasecret')
-        get '/auth/jwt/callback?jwt=' + encoded
-        expect(last_response.status).to eq(302)
-      end
-
-      it 'should not work if the iat key is missing' do
-        encoded = JWT.encode({name: 'Ted', email: 'ted@example.com'}, 'imasecret')
-        get '/auth/jwt/callback?jwt=' + encoded
-        expect(last_response.status).to eq(302)
-      end
     end
   end
 end
