@@ -3,15 +3,15 @@ require 'spec_helper'
 describe OmniAuth::Strategies::JWT do
   let(:response_json){ JSON.load(last_response.body) }
 
-  let(:app){
+  let(:app) do
     Rack::Builder.new do |b|
       b.use Rack::Session::Cookie, secret: 'sekrit'
       b.use OmniAuth::Strategies::JWT
       b.run -> (env) { [ 200, {}, [ (env['omniauth.auth'] || {}).to_json ] ] }
     end
-  }
+  end
 
-  let(:token) do
+  let(:payload) do
     {
       sub:                  "123456",
       name:                 "Ferris",
@@ -38,9 +38,26 @@ describe OmniAuth::Strategies::JWT do
     }
   end
 
+  let(:id_token) do
+    JWT.encode payload, false, "none"
+  end
+
+  let(:token_exchange_call) do
+    # this is the response of the token exchange call
+    # used by native apps to decode the JWt token from
+    # the user currently signed in on idplus
+    {
+        "access_token": "eyJhbGciOiJIUzI1NiIsImtpZCI6IklEUExVU0FDQ1RPS0VOIn0.eyJzY29wZSI6WyJvcGVuaWQiLCJlbWFpbCIsInByb2ZpbGUiLCJlbHNfYXV0aF9pbmZvIiwidXJuOmNvbTplbHNldmllcjppZHA6cG9saWN5OnByb2R1Y3Q6aW5kdl9pZGVudGl0eSJdLCJjbGllbnRfaWQiOiJISVZFQkVOQ0gtZGV2IiwiYWNjZXNzR3JhbnRHdWlkIjoiaWtyTHY2ZVhHTTRRSk9FZHl1WUNFZ0VXQjlZV2VLbGQiLCJwbGF0U2l0ZSI6IkhJVi9oaXZlIiwic3ViamVjdCI6IjMxNjMyNzMzIiwiYXV0aFRva2VuIjoiOTZkZTM2NmY4YmI2MjI0MWRlMzg1NDM2NzRjYjgyYTBhNGExZ3hycWIiLCJvYXV0aFNjb3BlIjpbIm9wZW5pZCIsImVtYWlsIiwicHJvZmlsZSIsImVsc19hdXRoX2luZm8iLCJ1cm46Y29tOmVsc2V2aWVyOmlkcDpwb2xpY3k6cHJvZHVjdDppbmR2X2lkZW50aXR5Il0sImF1dGhUeXBlIjoiSElWL2hpdmUiLCJleHAiOjE1NDUwNTQ1NTF9.S_k4My4UXjNPm9-wlP4V7EGQ6tXqmcAXKvFEiQQjCnQ",
+        "refresh_token": "bJ7WWLSkDJF9qP2u2RELBYsRJw14p7OBYLeVQ9gQr2",
+        "id_token": id_token,
+        "token_type": "Bearer",
+        "expires_in": 7199
+    }
+  end
+
   context 'request phase' do
     it 'should redirect to default callback path' do
-      get '/auth/jwt'
+      get '/auth/jwt', params: { token: token_exchange_call[:id_token] }
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/auth/jwt/callback?jwt=')
     end
@@ -48,8 +65,7 @@ describe OmniAuth::Strategies::JWT do
 
   context 'callback phase' do
     it 'should decode the encoded token passed as param' do
-      encoded_token = JWT.encode(token, false, "none")
-      get "/auth/jwt/callback?jwt=#{encoded_token}"
+      get '/auth/jwt/callback',  jwt: id_token
       expect(response_json["uid"]).to eq("123456")
       expect(response_json["info"]["name"]).to eq("Ferris")
       expect(response_json["info"]["email"]).to eq("f.bueller@email.com")
