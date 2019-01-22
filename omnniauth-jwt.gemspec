@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "byebug"
 
-  spec.add_dependency "jwt", "~> 2.1.0"
+  spec.add_dependency "jwt", "~> 1.5.6"
   spec.add_dependency "omniauth", "~> 1.1"
   spec.add_dependency "typhoeus", "~> 1.3.1"
 end
