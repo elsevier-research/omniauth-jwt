@@ -1,15 +1,17 @@
 require 'jwt'
 require 'omniauth'
+require 'typhoeus'
 require 'byebug'
 
 module OmniAuth
   module Strategies
     class JWT
-      class ClaimInvalid < StandardError; end
+      SITE_URL = 'https://loadrc-id.elsevier.com'
 
       include OmniAuth::Strategy
 
       option :callback_path, nil
+      option :site, SITE_URL
 
       def request_phase
         redirect [callback_path, "?jwt=", request.params['token']].join
@@ -23,13 +25,22 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= deep_symbolize(::JWT.decode(request.params['jwt'], nil, false).first)
+        deep_symbolize(JSON.parse(get_info_call.response_body)) if get_info_call.response_code == 200
+      end
+
+      def get_info_call
+        Typhoeus::Request.new("#{options.site}/idp/userinfo.openid",
+                              method: :get,
+                              verbose: true,
+                              headers: {
+                                Authorization: "Bearer #{request.params['jwt']}",
+                                Accept: 'application/JSON',
+                                'Content-Type' => 'application/JSON'
+                              }).run
       end
 
       def callback_phase
         super
-      rescue ClaimInvalid => e
-        fail! :claim_invalid, e
       end
 
       uid { raw_info[:sub]  }
@@ -57,12 +68,8 @@ module OmniAuth
           indv_identity_method: raw_info[:indv_identity_method],
           indv_identity:        raw_info[:indv_identity],
           auth_token:           raw_info[:auth_token],
-          aud:                  raw_info[:aud],
-          jti:                  raw_info[:jti],
-          iss:                  raw_info[:iss],
-          iat:                  raw_info[:iat],
-          exp:                  raw_info[:exp],
-          policy_success:       raw_info[:policy_success]
+          policy_success:       raw_info[:policy_success],
+          user_info_exp:        raw_info[:user_info_exp]
         }
       end
     end
