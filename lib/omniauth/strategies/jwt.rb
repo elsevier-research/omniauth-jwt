@@ -6,12 +6,9 @@ require 'byebug'
 module OmniAuth
   module Strategies
     class JWT
-      SITE_URL = 'https://loadrc-id.elsevier.com'
-
       include OmniAuth::Strategy
 
       option :callback_path, nil
-      option :site, SITE_URL
 
       def request_phase
         redirect [callback_path, "?jwt=", request.params['token']].join
@@ -24,12 +21,19 @@ module OmniAuth
         end
       end
 
+      def environment
+        case request.params['env']
+        when 'rc'   then  'https://loadrc-id.elsevier.com'
+        when 'dev'  then ''
+        when 'prod' then ''
+        end
+      end
       def raw_info
         deep_symbolize(JSON.parse(get_info_call.response_body)) if get_info_call.response_code == 200
       end
 
       def get_info_call
-        Typhoeus::Request.new("#{options.site}/idp/userinfo.openid",
+        Typhoeus::Request.new([environment, "idp/userinfo.openid"].join('/'),
                               method: :get,
                               verbose: true,
                               headers: {

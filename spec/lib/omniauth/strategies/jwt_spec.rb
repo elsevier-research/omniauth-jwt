@@ -20,15 +20,6 @@ describe OmniAuth::Strategies::JWT do
   end
 
   describe 'options' do
-    it 'has correct site' do
-      expect(subject.options.site).to eq('https://loadrc-id.elsevier.com')
-    end
-
-    it 'overrides the site' do
-      @options = { site: 'http://example.org' }
-      expect(subject.options.site).to eq('http://example.org')
-    end
-
     it 'defaults redirect_urit to nil' do
       @options = {}
       expect(subject.options.redirect_uri).to eq(nil)
@@ -42,7 +33,7 @@ describe OmniAuth::Strategies::JWT do
 
   context 'request phase' do
     it 'should redirect to default callback path' do
-      get '/auth/jwt', jwt: "encodedtoken"
+      get '/auth/jwt', jwt: "encodedtoken", env: 'rc'
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/auth/jwt/callback?jwt=')
     end
@@ -83,7 +74,7 @@ describe OmniAuth::Strategies::JWT do
     end
 
     it 'responds with valid json' do
-      get '/auth/jwt/callback',  jwt: 'encodedtoken'
+      get '/auth/jwt/callback',  jwt: 'encodedtoken', env: 'rc'
       expect(subject.uid).to eq("123456")
       expect(subject.info[:name]).to eq("Ferris Bueller")
       expect(subject.info[:email]).to eq("ferris.bueller@email.com")
