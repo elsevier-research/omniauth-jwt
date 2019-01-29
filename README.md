@@ -37,12 +37,38 @@ end
 
 REQUIRED parameters:
 
-* **jwt** this is the encoded token retrieved by signing in a user on idplus that will be used by the external authenticator to verify   that a user exists on idplus by using the [getUserInfoCall](https://confluence.cbsels.com/display/ID/Get+UserInfo+Call). 
-* **env:** this is the environment to use to access the [getUserInfoCall]. Can either be `rc`, `dev` or `prod`
-  
+* **token** this is the encoded token retrieved by signing in a user on idplus that will be used by the external authenticator to verify   that a user exists on idplus by using the [getUserInfoCall](https://confluence.cbsels.com/display/ID/Get+UserInfo+Call).
+* **env:** this is the idplus environment for the [getUserInfoCall]. Can either be `rc`, `dev` or `prod`
+
 ### Authentication Process
 
-When you authenticate through `omniauth-jwt` you can send users to `/auth/jwt?jwt=ENCODEDJWTGOESHERE&env=rc`.
+When you authenticate through `omniauth-jwt` you can send users to `/auth/jwt?token=ENCODEDJWTGOESHERE&env=rc`.
+
+You can use the example sinatra app in `example` folder to test the
+authentication:
+
+1. `cd` into the `example` folder
+2. run `bundle` to install gems
+3. start the application `shotgun --server=thin --port=9292 config.ru`
+
+You can now visit `http://127.0.0.1:9292//auth/jwt?token=ENCODEDJWTGOESHERE&env=rc`
+
+**PLEASE NOTE:**
+
+To retrieve the encoded `token` you can authenticate
+via [omniauth idplus](https://github.com/yortz/omniauth-idplus) strategy
+and use the `credentials["token"]` value of the json response. Be sure to pass
+as `env` parameter the SAME environment used to retrieve the token in the
+[omniauth idplus](https://github.com/yortz/omniauth-idplus) strategy.
+
+```
+"credentials": {
+  "token": "encoded_token",
+  "refresh_token": "refresh_token",
+  "expires_at": 1548777273,
+  "expires": true
+}
+```
 
 ## Contributing
 
