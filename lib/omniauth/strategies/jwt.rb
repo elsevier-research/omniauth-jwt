@@ -6,6 +6,9 @@ require 'byebug'
 module OmniAuth
   module Strategies
     class JWT
+      class InvalidResponse < StandardError; end
+
+
       include OmniAuth::Strategy
 
       option :callback_path, nil
@@ -28,8 +31,12 @@ module OmniAuth
         when 'prod' then ''
         end
       end
+
       def raw_info
-        deep_symbolize(JSON.parse(get_info_call.response_body)) if get_info_call.response_code == 200
+        status_code = get_info_call.response_code
+        @decoded ||= deep_symbolize(JSON.parse(get_info_call.response_body)) if status_code == 200
+        raise InvalidResponse.new("Unauthorized") unless status_code == 200
+        @decoded
       end
 
       def get_info_call
@@ -45,6 +52,8 @@ module OmniAuth
 
       def callback_phase
         super
+      rescue InvalidResponse => e
+        fail! :unauthorized, e
       end
 
       uid { raw_info[:sub]  }
