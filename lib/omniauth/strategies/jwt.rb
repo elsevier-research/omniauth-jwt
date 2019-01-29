@@ -1,6 +1,7 @@
 require 'jwt'
 require 'omniauth'
 require 'typhoeus'
+require 'byebug'
 
 module OmniAuth
   module Strategies
@@ -13,7 +14,7 @@ module OmniAuth
       option :callback_path, nil
 
       def request_phase
-        redirect [callback_path, "?jwt=", request.params['token']].join
+        redirect [callback_path, "?jwt=", request.params['token'], "&env=", request.params['env']].join
       end
 
       def deep_symbolize(hash)
