@@ -1,7 +1,6 @@
 require 'jwt'
 require 'omniauth'
 require 'typhoeus'
-require 'byebug'
 
 module OmniAuth
   module Strategies
