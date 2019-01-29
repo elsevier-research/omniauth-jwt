@@ -51,7 +51,7 @@ authentication:
 2. run `bundle` to install gems
 3. start the application `shotgun --server=thin --port=9292 config.ru`
 
-You can now visit `http://127.0.0.1:9292//auth/jwt?token=ENCODEDJWTGOESHERE&env=rc`
+You can now visit `http://127.0.0.1:9292/auth/jwt?token=ENCODEDJWTGOESHERE&env=rc`
 
 **PLEASE NOTE:**
 
