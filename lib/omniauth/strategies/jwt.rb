@@ -27,8 +27,8 @@ module OmniAuth
       def environment
         case request.params['env']
         when 'rc'   then  'https://loadrc-id.elsevier.com'
-        when 'dev'  then ''
-        when 'prod' then ''
+        when 'dev'  then  'https://loadcq-id.elsevier.com'
+        when 'prod' then  'https://id.elsevier.com'
         end
       end
 
