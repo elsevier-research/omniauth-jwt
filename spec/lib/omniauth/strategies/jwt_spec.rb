@@ -33,9 +33,9 @@ describe OmniAuth::Strategies::JWT do
 
   context 'request phase' do
     it 'should redirect to default callback path' do
-      get '/auth/jwt', jwt: "encodedtoken", env: 'rc'
+      get '/auth/jwt', token: "encodedtoken", env: 'rc'
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/auth/jwt/callback?jwt=')
+      expect(last_response.headers['Location']).to eq('/auth/jwt/callback?jwt=encodedtoken&env=rc')
     end
   end
 

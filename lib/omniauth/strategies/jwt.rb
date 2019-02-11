@@ -1,6 +1,6 @@
 require 'jwt'
 require 'omniauth'
-require 'typhoeus'
+require 'httparty'
 
 module OmniAuth
   module Strategies
@@ -32,21 +32,19 @@ module OmniAuth
       end
 
       def raw_info
-        status_code = get_info_call.response_code
-        @decoded ||= deep_symbolize(JSON.parse(get_info_call.response_body)) if status_code == 200
+        status_code = get_info_call.code
+        @decoded ||= deep_symbolize(JSON.parse(get_info_call.body)) if status_code == 200
         raise InvalidResponse.new("Unauthorized") unless status_code == 200
         @decoded
       end
 
       def get_info_call
-        Typhoeus::Request.new([environment, "idp/userinfo.openid"].join('/'),
-                              method: :get,
-                              verbose: true,
-                              headers: {
-                                Authorization: "Bearer #{request.params['jwt']}",
-                                Accept: 'application/JSON',
-                                'Content-Type' => 'application/JSON'
-                              }).run
+        HTTParty.get([environment, "idp/userinfo.openid"].join('/'),
+                      headers: {
+                        Authorization: "Bearer #{request.params['jwt']}",
+                        Accept: 'application/JSON',
+                        'Content-Type' => 'application/JSON'
+                      })
       end
 
       def callback_phase

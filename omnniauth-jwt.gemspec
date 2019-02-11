@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "jwt", "~> 1.5.6"
   spec.add_dependency "omniauth", "~> 1.1"
-  spec.add_dependency "typhoeus", "~> 1.3.1"
+  spec.add_dependency "httparty", "~> 0.16.4"
 end
