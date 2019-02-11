@@ -1,6 +1,7 @@
 require 'jwt'
 require 'omniauth'
 require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 
 module OmniAuth
   module Strategies
