@@ -48,8 +48,6 @@ module OmniAuth
 
       def callback_phase
         super
-      rescue InvalidResponse => e
-        fail! :unauthorized, e
       end
 
       uid { raw_info[:sub]  }
