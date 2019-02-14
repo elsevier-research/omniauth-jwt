@@ -55,7 +55,6 @@ module OmniAuth
       uid { raw_info[:sub]  }
 
       info do
-        raw_info
         {
           name:       raw_info[:name],
           email:      raw_info[:email],
