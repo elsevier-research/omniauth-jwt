@@ -35,7 +35,7 @@ module OmniAuth
         @response ||= get_info_call
         case @response.code
         when 400, 401
-          raise InvalidResponse.new(@response)
+          raise InvalidResponse.new(@response.code)
         else
           @decoded ||= deep_symbolize(JSON.parse(@response.body))
         end
