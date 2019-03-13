@@ -42,6 +42,7 @@ module OmniAuth
       end
 
       def get_info_call
+        puts request.params['jwt']
         HTTParty.get([environment, "idp/userinfo.openid"].join('/'),
                       headers: {
                         Authorization: "Bearer #{request.params['jwt']}",
