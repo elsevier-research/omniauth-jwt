@@ -35,13 +35,14 @@ module OmniAuth
         @response ||= get_info_call
         case @response.code
         when 400, 401
-          raise InvalidResponse.new(@response)
+          raise InvalidResponse.new(@response.code)
         else
           @decoded ||= deep_symbolize(JSON.parse(@response.body))
         end
       end
 
       def get_info_call
+        puts request.params['jwt']
         HTTParty.get([environment, "idp/userinfo.openid"].join('/'),
                       headers: {
                         Authorization: "Bearer #{request.params['jwt']}",
