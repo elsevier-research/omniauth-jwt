@@ -33,8 +33,14 @@ module OmniAuth
 
       def raw_info
         @response ||= get_info_call
-        raise InvalidResponse.new("Unauthorized") unless @response.code == 200
-        @decoded ||= deep_symbolize(JSON.parse(@response.body))
+        case @response.code
+        when 400
+          raise InvalidResponse.new("Missing Token")
+        when 401
+          raise InvalidResponse.new("Token Expired")
+        else
+          @decoded ||= deep_symbolize(JSON.parse(@response.body))
+        end
       end
 
       def get_info_call
