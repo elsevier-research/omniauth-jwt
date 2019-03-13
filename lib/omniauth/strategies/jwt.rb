@@ -34,10 +34,8 @@ module OmniAuth
       def raw_info
         @response ||= get_info_call
         case @response.code
-        when 400
-          raise InvalidResponse.new("Missing Token")
-        when 401
-          raise InvalidResponse.new("Token Expired")
+        when 400 || 401
+          raise InvalidResponse.new(@response)
         else
           @decoded ||= deep_symbolize(JSON.parse(@response.body))
         end
