@@ -1,4 +1,7 @@
-$:.unshift File.dirname(__FILE__) + "/../lib"
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+require 'rack/session'
 require 'rack/test'
 
 require 'omniauth/jwt'
