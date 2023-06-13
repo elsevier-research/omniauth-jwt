@@ -1,9 +1,13 @@
+# frozen_string_literal: true
+
 require 'rubygems'
 require 'bundler'
+require 'rack/session'
 require 'sinatra'
 require '../lib/omniauth/strategies/jwt'
 require 'json'
 
+# JWT class
 class JWTApp < Sinatra::Base
   post '/' do
     <<-HTML
